@@ -127,11 +127,42 @@ def is_valid(eq):
     ans = calculate(eq[:-2])
     return equality_test[eq[-2]](ans, eq[-1])
 
+
+def h_eq_wrong(s):
+    """Not admissable"""
+    count = 0
+    for eq in s:
+        if not is_valid(eq):
+            count += 1
+    return count
+
+
+def h_valid(s):
+    for eq in s:
+        if not is_valid(eq):
+            return 1
+    return 0
+
+
+def h_abs_val(s):
+    """Not admissable"""
+    absolute_distance = 0
+    for eq in s:
+        ans = calculate(eq[:-2])
+        absolute_distance += abs(ans - eq[-1])
+    return absolute_distance
+
+HEURISTICS = {
+    "h_eq_wrong": h_eq_wrong,
+    "h_abs_val": h_abs_val,
+    "h_valid": h_valid
+}
+
 # </COMMON_CODE>
 
 # <COMMON_DATA>
-num_disks = 5
-num_sides = 3
+num_disks = 7
+num_sides = 4
 max_num = 9
 max_right = pow(max_num, math.ceil(num_disks - 2))
 
@@ -148,8 +179,10 @@ answers = {
     '=': lambda x: x,
     '<=': lambda x: r.choice(range(x, max_right)),
     '<': lambda x: r.choice(range(x+1, max_right)),
-    '>': lambda x: r.choice(range(0, x)) if x > 0 else r.choice(range(x-1, -max_right, -1)),
-    '>=': lambda x: r.choice(range(0, x + 1)) if x >= 0 else r.choice(range(x, -max_right, -1))
+    '>': lambda x: r.choice(range(0, x)) if x > 0 else r.choice(
+                            range(x-1, -max_right, -1)),
+    '>=': lambda x: r.choice(range(0, x + 1)) if x >= 0 else r.choice(
+                             range(x, -max_right, -1))
 }
 equality_test = {
     '=': lambda x, y: x == y,
@@ -167,25 +200,47 @@ equality_test = {
 def CREATE_INITIAL_STATE():
     left_disk_num = num_disks - 2
     state = []
-    for i in range(num_disks):
+    for i in range(num_sides):
         side = []
         for j in range(left_disk_num):
             if j % 2 == 0:
                 side.append(r.choice(range(1, max_num)))
             else:
                 side.append(r.choice(operators))
-        equality = r.choice(equalities)
+        # equality = r.choice(equalities)
+        equality = '='
         ans = calculate(side)
         right = answers[equality](ans)
         side.append(equality)
         side.append(right)
 
         state.append(side)
-    print("Preshuffle:")
-    print(DESCRIBE_STATE(state))
-    for i in range(100):
-    	state = move(state, r.choice(range(num_disks)), r.choice(range(1)))
+    # print("Preshuffle:")
+    # print(DESCRIBE_STATE(state))
+    state = shuffle(state)
     return state
+    # return TEST_STATE
+
+
+TEST_STATE = [
+    [5, "*", 3, "/", 5, "=", 0],
+    [1, "+", 3, "+", 3, "=", 2],
+    [8, "-", 6, "-", 3, "=", 29],
+    [5, "+", 5, "*", 2, "=", 8]
+]
+
+# 6 - 4 % 3 = 0
+# 7 - 3 * 8 = 0
+# 3 + 3 - 3 = 1
+# 7 - 1 % 6 = 42
+
+
+def shuffle(s):
+    state = copy_state(s)
+    for i in range(20, 100):
+        state = move(state, r.choice(range(num_disks)), r.choice(range(1)))
+    return state
+
 
 # </INITIAL_STATE>
 

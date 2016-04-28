@@ -19,8 +19,8 @@ if len(sys.argv) < 2:
 else:
     Problem = importlib.import_module(sys.argv[1])
 
-puzzle = sys.argv[3].split(".")[0]
-STATE = importlib.import_module(puzzle).CREATE_INITIAL_STATE()
+# puzzle = sys.argv[3].split(".")[0]
+STATE = Problem.CREATE_INITIAL_STATE()
 H_FUNCTION = Problem.HEURISTICS[sys.argv[2]]
 FVALUE = {}
 
@@ -35,6 +35,10 @@ def runAStar():
     Problem. The solution is gaurunteed to be the shortest path if
     H_FUNCTION is admissable.
     """
+    print("Initial State:")
+    print(Problem.DESCRIBE_STATE(STATE))
+    print("")
+
     aStar(STATE)
     print(str(COUNT) + " states examined")
 
