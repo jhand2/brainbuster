@@ -38,7 +38,7 @@ def DEEP_EQUALS(s1, s2):
 def DESCRIBE_STATE(state):
     st = ""
     for eq in state:
-        st += str(eq) + '\n'
+        st += ' '.join(str(x) for x in eq) + '\n'
     return st
 
 
@@ -131,9 +131,9 @@ def is_valid(eq):
 
 # <COMMON_DATA>
 num_disks = 5
-num_sides = 8
-max_num = 100
-max_right = math.pow(max_num, (num_disks - 2) // 2)
+num_sides = 3
+max_num = 9
+max_right = pow(max_num, math.ceil(num_disks - 2))
 
 operators = ['+', '-', '*', '/', '%']
 operations = {
@@ -146,10 +146,10 @@ operations = {
 equalities = ['=', '<=', '>=', '<', '>']
 answers = {
     '=': lambda x: x,
-    '<=': lambda x: r.choice(range(0, x + 1)),
-    '<': lambda x: r.choice(range(0, x)),
-    '>': lambda x: r.choice(range(x + 1, max_right + 1)),
-    '>=': lambda x: r.choice(range(x, max_right + 1))
+    '<=': lambda x: r.choice(range(x, max_right)),
+    '<': lambda x: r.choice(range(x+1, max_right)),
+    '>': lambda x: r.choice(range(0, x)) if x > 0 else r.choice(range(x-1, -max_right, -1)),
+    '>=': lambda x: r.choice(range(0, x + 1)) if x >= 0 else r.choice(range(x, -max_right, -1))
 }
 equality_test = {
     '=': lambda x, y: x == y,
@@ -171,16 +171,20 @@ def CREATE_INITIAL_STATE():
         side = []
         for j in range(left_disk_num):
             if j % 2 == 0:
-                side.append(r.choice(range(max_num)))
+                side.append(r.choice(range(1, max_num)))
             else:
                 side.append(r.choice(operators))
-        print(side)
         equality = r.choice(equalities)
         ans = calculate(side)
-        side += [equality, ans]
+        right = answers[equality](ans)
+        side.append(equality)
+        side.append(right)
 
         state.append(side)
+    print("Preshuffle:")
     print(DESCRIBE_STATE(state))
+    for i in range(100):
+    	state = move(state, r.choice(range(num_disks)), r.choice(range(1)))
     return state
 
 # </INITIAL_STATE>

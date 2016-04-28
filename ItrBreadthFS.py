@@ -10,8 +10,13 @@ modified the one line from ItrDFS. This program takes slightly
 more observations but is gaurunteed to find the solution with the
 fewest moves.
 """
+import sys
 
-import TowersOfHanoi as Problem
+if sys.argv==[''] or len(sys.argv)<2:
+  import EightPuzzle as Problem
+else:
+  import importlib
+  Problem = importlib.import_module(sys.argv[1])
 
 COUNT = None
 BACKLINKS = {}
