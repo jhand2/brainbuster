@@ -3,6 +3,12 @@ Jordan Hand and Kevin Fong
 
 Brain Buster Problem Formulation
 
+A picture of a Brain Buster puzzle can be found here:
+http://www2.stetson.edu/~efriedma/rubik/misc/mis3.jpg
+
+Our implementation of Brain Buster DOES NOT use order of operations.
+Equations are evaluated from left to right.
+
 Uses on python 3.X
 """
 
@@ -27,6 +33,9 @@ PROBLEM_DESC = \
 
 
 def DEEP_EQUALS(s1, s2):
+    """
+    Returns True if s1 is the same as s2. Else returns False
+    """
     if len(s1) != len(s2):
         return False
     for i in range(len(s1)):
@@ -36,6 +45,14 @@ def DEEP_EQUALS(s1, s2):
 
 
 def DESCRIBE_STATE(state):
+    """
+    Describes the state of a brain buster puzzle in the following
+    form
+
+    1 + 2 + 3 = 6
+    2 * 4 + 2 = 10
+    1 + 1 - 2 = 0
+    """
     st = ""
     for eq in state:
         st += ' '.join(str(x) for x in eq) + '\n'
@@ -43,6 +60,7 @@ def DESCRIBE_STATE(state):
 
 
 def HASHCODE(state):
+    """Creates a unique string hash value for a state of brain buster"""
     return DESCRIBE_STATE(state)
 
 
@@ -57,10 +75,18 @@ def copy_state(state):
 
 
 def can_move(s, disk_num, direction):
+    """
+    Returns True if a move is possible. In Brain Buster all moves are
+    possible at any time.
+    """
     return True
 
 
 def move(s, disk_num, direction):
+    """
+    In the current state s, turns disk disk_num the direction of direction.
+    A direction of 0 is up and 1 is down.
+    """
     new_state = copy_state(s)
     if direction == 1:
         prev = new_state[-1][disk_num]
@@ -115,6 +141,10 @@ class Operator:
 
 
 def calculate(eq):
+    """
+    Calculates the given equation (with no equality). That is, just
+    the left hand side of the equation.
+    """
     curr_eq = eq[:]
     while len(curr_eq) > 1:
         new_operand = operations[curr_eq[1]](curr_eq[0], curr_eq[2])
@@ -124,12 +154,19 @@ def calculate(eq):
 
 
 def is_valid(eq):
+    """
+    Passed a full equation (left and right sides including equality). Returns
+    True if equation is true, else returns False.
+    """
     ans = calculate(eq[:-2])
     return equality_test[eq[-2]](ans, eq[-1])
 
 
 def h_eq_wrong(s):
-    """Not admissable"""
+    """
+    Counts the number of incorrect equations in state s.
+    Not admissable
+    """
     count = 0
     for eq in s:
         if not is_valid(eq):
@@ -138,6 +175,10 @@ def h_eq_wrong(s):
 
 
 def h_valid(s):
+    """
+    Returns 1 if there are any invalid equations in state s. Otherwise returns
+    0.
+    """
     for eq in s:
         if not is_valid(eq):
             return 1
@@ -145,13 +186,17 @@ def h_valid(s):
 
 
 def h_abs_val(s):
-    """Not admissable"""
+    """
+    Does some crazy stuff.
+    Not admissable
+    """
     absolute_distance = 0
     for eq in s:
         ans = calculate(eq[:-2])
         absolute_distance += abs(ans - eq[-1])
     return absolute_distance
 
+'Dictionary of heuristics for Brain Buster'
 HEURISTICS = {
     "h_eq_wrong": h_eq_wrong,
     "h_abs_val": h_abs_val,
@@ -161,9 +206,11 @@ HEURISTICS = {
 # </COMMON_CODE>
 
 # <COMMON_DATA>
-num_disks = 7
-num_sides = 4
-max_num = 9
+num_disks = 7   # Number of disks in the Brain Buster puzzle
+num_sides = 4   # Number of faces (sides) in a Brain Buster Puzzle
+max_num = 9     # Maximum value that any number can be on a disk
+
+# The maximum value the right hand side can evaluate to.
 max_right = pow(max_num, math.ceil(num_disks - 2))
 
 operators = ['+', '-', '*', '/', '%']
@@ -175,6 +222,9 @@ operations = {
     '%': lambda x, y: x % y
 }
 equalities = ['=', '<=', '>=', '<', '>']
+
+# Generates answers that are true for a given left hand evaluation with an
+# equality/inequality
 answers = {
     '=': lambda x: x,
     '<=': lambda x: r.choice(range(x, max_right)),
@@ -184,6 +234,7 @@ answers = {
     '>=': lambda x: r.choice(range(0, x + 1)) if x >= 0 else r.choice(
                              range(x, -max_right, -1))
 }
+
 equality_test = {
     '=': lambda x, y: x == y,
     '<=': lambda x, y: x <= y,
@@ -198,6 +249,9 @@ equality_test = {
 
 
 def CREATE_INITIAL_STATE():
+    """
+    Randomly generates an initial state for Brain Buster.
+    """
     left_disk_num = num_disks - 2
     state = []
     for i in range(num_sides):
@@ -229,13 +283,11 @@ TEST_STATE = [
     [5, "+", 5, "*", 2, "=", 8]
 ]
 
-# 6 - 4 % 3 = 0
-# 7 - 3 * 8 = 0
-# 3 + 3 - 3 = 1
-# 7 - 1 % 6 = 42
-
 
 def shuffle(s):
+    """
+    Shuffles the disks in a state but doing a random number of random moves.
+    """
     state = copy_state(s)
     for i in range(20, 100):
         state = move(state, r.choice(range(num_disks)), r.choice(range(1)))
@@ -245,7 +297,7 @@ def shuffle(s):
 # </INITIAL_STATE>
 
 # <OPERATORS>
-dir_names = ['up', 'down']
+dir_names = ['up', 'down']  # Directions
 move_combos = []
 for i in range(num_disks):
     move_combos.append((i, 0))
